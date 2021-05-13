@@ -1,0 +1,14 @@
+﻿@using Ical.Net.CalendarComponents;
+@model CalendarSogo.Models.Event;
+
+@{
+    ViewData["Title"] = "Create Page";
+}
+<form asp-controller="Home" asp-action="Create" method="post">
+    <div>Fill in fields</div>
+    <input asp-for="@Model.Description" required placeholder="discription" />
+    <input asp-for="@Model.Summary" required placeholder="summary" />
+    <input hidden asp-for="@Model.Start" />
+    <input hidden asp-for="@Model.End" />
+    <button type="submit">Create</button>
+</form>

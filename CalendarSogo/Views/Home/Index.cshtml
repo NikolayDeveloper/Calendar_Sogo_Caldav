@@ -1,0 +1,31 @@
+﻿@using Ical.Net.CalendarComponents;
+@model List<CalendarEvent>
+
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+</div>
+
+<div>
+    <h2>Все мероприятия</h2>
+    @foreach (var ev in @Model)
+    {
+<div style="display:flex; justify-content:space-between;align-items:center;">
+    <div>
+        <div>@ev.Description</div>
+        <div>@ev.Summary</div>
+        <div>@ev.Start</div>
+        <div>@ev.End</div>
+    </div>
+    <div class="btn btn-danger">
+        
+        <a class="nav-link text-dark" asp-route-uid="@ev.Uid" asp-area="" asp-controller="Home" asp-action="Remove">Remove event</a>
+    </div>
+</div>
+        <hr />
+    }
+</div>
