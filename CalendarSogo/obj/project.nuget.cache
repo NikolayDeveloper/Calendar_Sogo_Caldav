@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "Gm4qe9GtMY9YHL3QJfw/1JKaNygKWvAW2YaPwsg//+0tO4yCV3eta/JT2YZYk38ZqtTg7MoyhVg91qti2XEr8A==",
+  "dgSpecHash": "06fpSx8mkqZbyx8duJs1hvxrXSYzdZkgLpmu6vO98fj6igixf/NSRdghBAGSBInqMPpMvPK0zKqWMECPNU64FQ==",
   "success": true,
-  "projectFilePath": "C:\\Users\\dudko\\source\\repos\\CalendarSogo\\CalendarSogo\\CalendarSogo.csproj",
+  "projectFilePath": "D:\\Nikolay\\WEB_git\\CalendarSogo\\CalendarSogo\\CalendarSogo.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\dudko\\.nuget\\packages\\ical.net\\4.2.0\\ical.net.4.2.0.nupkg.sha512",
     "C:\\Users\\dudko\\.nuget\\packages\\nodatime\\3.0.0\\nodatime.3.0.0.nupkg.sha512",

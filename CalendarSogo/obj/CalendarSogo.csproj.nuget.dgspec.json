@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\dudko\\source\\repos\\CalendarSogo\\CalendarSogo\\CalendarSogo.csproj": {}
+    "D:\\Nikolay\\WEB_git\\CalendarSogo\\CalendarSogo\\CalendarSogo.csproj": {}
   },
   "projects": {
-    "C:\\Users\\dudko\\source\\repos\\CalendarSogo\\CalendarSogo\\CalendarSogo.csproj": {
+    "D:\\Nikolay\\WEB_git\\CalendarSogo\\CalendarSogo\\CalendarSogo.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\dudko\\source\\repos\\CalendarSogo\\CalendarSogo\\CalendarSogo.csproj",
+        "projectUniqueName": "D:\\Nikolay\\WEB_git\\CalendarSogo\\CalendarSogo\\CalendarSogo.csproj",
         "projectName": "CalendarSogo",
-        "projectPath": "C:\\Users\\dudko\\source\\repos\\CalendarSogo\\CalendarSogo\\CalendarSogo.csproj",
+        "projectPath": "D:\\Nikolay\\WEB_git\\CalendarSogo\\CalendarSogo\\CalendarSogo.csproj",
         "packagesPath": "C:\\Users\\dudko\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\dudko\\source\\repos\\CalendarSogo\\CalendarSogo\\obj\\",
+        "outputPath": "D:\\Nikolay\\WEB_git\\CalendarSogo\\CalendarSogo\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Microsoft\\Xamarin\\NuGet\\",

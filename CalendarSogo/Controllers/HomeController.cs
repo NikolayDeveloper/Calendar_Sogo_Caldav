@@ -35,7 +35,7 @@ namespace CalendarSogo.Controllers
             {
                 // получу конкретный календарь personal
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://mx.sailau09.kz/SOGo/dav/test1@sailau09.kz/Calendar/personal.ics");
-                request.Credentials = new NetworkCredential("test1@sailau09.kz", "!QAZ3edc");
+                request.Credentials = new NetworkCredential("postmaster@sailau09.kz", "!QAZ3edc");
                 request.ContentType = "text/xml";
                 request.Headers.Add("If-None-Match", "*");
                 request.Method = "GET";
@@ -90,7 +90,7 @@ namespace CalendarSogo.Controllers
             {
                 string readAll;
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://mx.sailau09.kz/SOGo/dav/test1@sailau09.kz/Calendar/personal/" + e.Uid + ".ics");
-                request.Credentials = new NetworkCredential("test1@sailau09.kz", "!QAZ3edc");
+                request.Credentials = new NetworkCredential("postmaster@sailau09.kz", "!QAZ3edc");
                 request.ContentType = "text/calendar";
                 request.Headers.Add("If-None-Match", "*");
                 request.Method = "PUT";
@@ -126,7 +126,7 @@ namespace CalendarSogo.Controllers
             try
             {
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://mx.sailau09.kz/SOGo/dav/test1@sailau09.kz/Calendar/personal/"+ uid +".ics");
-                request.Credentials = new NetworkCredential("test1@sailau09.kz", "!QAZ3edc");
+                request.Credentials = new NetworkCredential("postmaster@sailau09.kz", "!QAZ3edc");
                  request.ContentType = "text/calendar";
                 //request.ContentType = "text/xml";
                 request.Headers.Add("If-None-Match", "*");
