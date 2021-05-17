@@ -1,0 +1,11 @@
+﻿
+@{
+    ViewData["Title"] = "CreateCalendar";
+}
+
+<h1>CreateCalendar</h1>
+
+<form asp-controller="Home" asp-action="CreateCalendar" method="post">
+   <input type="text" name="calendarName" required/>
+    <button type="submit">Create</button>
+</form>

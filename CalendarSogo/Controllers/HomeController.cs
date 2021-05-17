@@ -47,7 +47,6 @@ namespace CalendarSogo.Controllers
                     {
                         readAll = reader.ReadToEnd();
                         calendar = Calendar.Load(readAll);
-                   
                     }
                 }
                 response.Close();
@@ -145,7 +144,44 @@ namespace CalendarSogo.Controllers
             }
             return RedirectToAction("Index");
         }
-        public async Task< IActionResult> Remove(string uid)
+        public IActionResult CreateCalendar()
+        {
+            return View();
+        }
+        
+       
+        [HttpPost]
+        public async Task<IActionResult> CreateCalendar(string calendarName)
+        {
+            string readAll;
+            try
+            {
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(new Uri("https://mx.sailau09.kz/SOGo/dav/test1@sailau09.kz/Calendar/" + calendarName));
+                request.Credentials = new NetworkCredential("postmaster@sailau09.kz", "!QAZ3edc");
+                request.ContentType = "text/xml";
+                request.Headers.Add("If-None-Match", "*");
+                request.Method = "MKCALENDAR";
+                request.ServerCertificateValidationCallback = delegate { return true; }; // при публикации на боевой сервер убрать
+                HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync();
+                using (Stream stream = response.GetResponseStream())
+                {
+                    using (StreamReader reader = new StreamReader(stream))
+                    {
+                        readAll = reader.ReadToEnd();
+                        var statusCode = response.StatusCode;
+                    }
+                }
+                response.Close();
+
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            return RedirectToAction("Index");
+        }
+            public async Task< IActionResult> Remove(string uid)
         {
             string readAll;
             try
