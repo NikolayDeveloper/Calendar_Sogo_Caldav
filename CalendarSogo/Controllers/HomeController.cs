@@ -65,8 +65,8 @@ namespace CalendarSogo.Controllers
 
         public IActionResult Create()
         {
-            var now = DateTime.Now;
-            var later = now.AddHours(1);
+            var now = DateTime.Now.AddHours(1);
+            var later = now.AddHours(2);
             CalendarSogo.Models.Event ev = new CalendarSogo.Models.Event()
             {
                 Start = now,
@@ -78,16 +78,41 @@ namespace CalendarSogo.Controllers
         [HttpPost]
         public async Task< IActionResult> Create(CalendarSogo.Models.Event ev)
         {
-            CalendarEvent e = new CalendarEvent()
-            {
-                Description = ev.Description,
-                Summary=ev.Summary,
-                Start= new CalDateTime(ev.Start),
-                End=new CalDateTime(ev.End)
-
-            };
             try
             {
+                CalendarEvent e = new CalendarEvent()
+                {
+                    Description = ev.Description,
+                    Summary = ev.Summary,
+                    Start = new CalDateTime(ev.Start),
+                    End = new CalDateTime(ev.End),
+                    Location = "301 cabinet",
+                    Comments=new List<string>() {"comment1" },
+                    Contacts = new List<string>() { "Contacts" },
+                    GeographicLocation = new GeographicLocation(),
+                    Organizer = new Organizer()
+                    {
+                        CommonName = "Organizer name",
+                        Value = new Uri("mailto:org@sailau09.kz")
+
+                    },
+                    Attendees = new List<Attendee>()
+                    {
+                        new Attendee(new Uri("mailto:test2@sailau09.kz"))
+                        {
+                            CommonName ="test1 name",
+                            Role=ParticipationRole.RequiredParticipant
+                        },
+                         new Attendee(new Uri("mailto:test3@sailau09.kz"))
+                        {
+                            CommonName ="test2 name",
+                            Role=ParticipationRole.RequiredParticipant
+                        },
+
+                    }
+                };
+               
+                
                 string readAll;
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://mx.sailau09.kz/SOGo/dav/test1@sailau09.kz/Calendar/personal/" + e.Uid + ".ics");
                 request.Credentials = new NetworkCredential("postmaster@sailau09.kz", "!QAZ3edc");
