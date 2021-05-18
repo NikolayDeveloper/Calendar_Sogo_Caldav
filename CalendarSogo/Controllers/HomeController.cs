@@ -15,12 +15,15 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace CalendarSogo.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        public static readonly XNamespace xDav = XNamespace.Get("DAV:");
+        public static readonly XNamespace xCalDav = XNamespace.Get("urn:ietf:params:xml:ns:caldav");
 
         public HomeController(ILogger<HomeController> logger)
         {
@@ -35,7 +38,8 @@ namespace CalendarSogo.Controllers
             try
             {
                 // получу конкретный календарь personal
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://mx.sailau09.kz/SOGo/dav/test1@sailau09.kz/Calendar/personal.ics");
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://mx.sailau09.kz/SOGo/dav/test1@sailau09.kz/Calendar/created2%20calendar.ics");
+                //HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://mx.sailau09.kz/SOGo/dav/test1@sailau09.kz/Calendar/personal.ics");
                 request.Credentials = new NetworkCredential("postmaster@sailau09.kz", "!QAZ3edc");
                 request.ContentType = "text/xml";
                 request.Headers.Add("If-None-Match", "*");
@@ -193,7 +197,66 @@ namespace CalendarSogo.Controllers
             }
             return RedirectToAction("Index");
         }
-            public async Task< IActionResult> Remove(string uid)
+
+
+
+        public async Task<IActionResult> GetCalendars()
+        {
+            XDocument xProps = new XDocument(new XElement(xDav.GetName("propfind"), new XElement(xDav.GetName("allprop"))));
+            XElement xElement = xProps.Root;
+            string content = xElement.ToString();
+            string readAll;
+            try
+            {
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(new Uri("https://mx.sailau09.kz/SOGo/dav/test1@sailau09.kz/Calendar/"));
+                request.Credentials = new NetworkCredential("postmaster@sailau09.kz", "!QAZ3edc");
+                request.ContentType = "text/xml";
+                ((HttpWebRequest)request).UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.2 (KHTML, like Gecko) Chrome/15.0.874.121 Safari/535.2";
+                request.Headers.Add("Depth", "1");
+                request.Method = "PROPFIND";
+                request.ServerCertificateValidationCallback = delegate { return true; }; // при публикации на боевой сервер убрать
+
+                using (var stream = request.GetRequestStream())
+                {
+                   var strWrt = new StreamWriter(stream);
+                    strWrt.Write(content);
+                }
+                
+
+                HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync();
+                using (Stream stream = response.GetResponseStream())
+                {
+                    using (StreamReader reader = new StreamReader(stream))
+                    {
+                        readAll = reader.ReadToEnd();
+                        var xDocument = XDocument.Parse(readAll);
+                        var statusCode = response.StatusCode;
+                        var responses = xDocument.Descendants(xDav.GetName("response"));
+                        List<Calendar> calendars = new List<Calendar>();
+                        // var hrefs = xdoc.Descendants(CalDav.Common.xDav.GetName("href"));
+                        foreach (XElement res in responses)
+                        {
+                            if (res.Descendants(xCalDav.GetName("calendar")).Count() > 0)
+                            {
+                                string href = res.Descendants(xDav.GetName("href")).First().Value;
+                                //calendars.Add(new Calendar(Common, new Uri(Url, href)) { Credentials = Credentials });
+                            }
+                        }
+                    }
+                }
+                response.Close();
+
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            return RedirectToAction("Index");
+        }
+
+
+        public async Task< IActionResult> Remove(string uid)
         {
             string readAll;
             try
@@ -222,25 +285,25 @@ namespace CalendarSogo.Controllers
             return RedirectToAction("Index");
         }
 
+
        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-       
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         public IActionResult Privacy()
         {
             return View();
@@ -252,5 +315,11 @@ namespace CalendarSogo.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
     }
-    
+    public static class Common
+    {
+        public static bool Is(this string input, string other)
+        {
+            return string.Equals(input ?? string.Empty, other ?? string.Empty, StringComparison.OrdinalIgnoreCase);
+        }
+    }
 }
