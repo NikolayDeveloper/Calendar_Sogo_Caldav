@@ -30,6 +30,7 @@ namespace CalendarSogo.Controllers
         public async Task<IActionResult> Index()
         {
             Calendar calendar=null;
+            string calendarName;
             string readAll = "";
             try
             {
@@ -57,6 +58,15 @@ namespace CalendarSogo.Controllers
             }
             //получу список всех мероприятий из конкретного календаря
             var events = calendar?.Events;
+            
+            foreach (var item in calendar.Properties)
+            {
+                if(item.Name== "X-WR-CALNAME")
+                {
+                    calendarName = item.Value?.ToString();
+                }
+               
+            }
             
             return View(events.ToList());
 
@@ -89,6 +99,7 @@ namespace CalendarSogo.Controllers
                     Comments=new List<string>() {"comment1" },
                     Contacts = new List<string>() { "Contacts" },
                     GeographicLocation = new GeographicLocation(),
+                    
                     Organizer = new Organizer()
                     {
                         CommonName = "Organizer name",
@@ -113,7 +124,8 @@ namespace CalendarSogo.Controllers
                
                 
                 string readAll;
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://mx.sailau09.kz/SOGo/dav/test1@sailau09.kz/Calendar/personal/" + e.Uid + ".ics");
+                //HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://mx.sailau09.kz/SOGo/dav/test1@sailau09.kz/Calendar/personal/" + e.Uid + ".ics");
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://mx.sailau09.kz/SOGo/dav/test1@sailau09.kz/Calendar/dddd" + e.Uid + ".ics");
                 request.Credentials = new NetworkCredential("postmaster@sailau09.kz", "!QAZ3edc");
                 request.ContentType = "text/calendar";
                 request.Headers.Add("If-None-Match", "*");

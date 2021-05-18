@@ -16,11 +16,20 @@
     {
 <div style="display:flex; justify-content:space-between;align-items:center;">
     <div>
+        <div>@ev.Location</div>
+        @*<div>@ev?.Calendar?.Properties[3]</div>*@
+        @foreach (var item in ev.Calendar.Properties)
+        {
+            if (item.Name == "X-WR-CALNAME")
+            {
+                 <div>@item.Value?.ToString()</div>
+            }
+        }
         <div>@ev.Description</div>
         <div>@ev.Summary</div>
         <div>@ev.Start</div>
         <div>@ev.End</div>
-        <div>@ev.Location</div>
+
         <div>-------</div>
         <div>Организатор:</div>
         <div>@ev?.Organizer?.CommonName</div>
