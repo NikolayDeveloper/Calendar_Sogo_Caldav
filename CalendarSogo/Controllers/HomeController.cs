@@ -32,47 +32,90 @@ namespace CalendarSogo.Controllers
 
         public async Task<IActionResult> Index()
         {
-            Calendar calendar=null;
             string calendarName;
-            string readAll = "";
+            List<Calendar> calendars = new List<Calendar>();
+            XDocument xProps = new XDocument(new XElement(xDav.GetName("propfind"), new XElement(xDav.GetName("allprop"))));
+            XElement xElement = xProps.Root;
+            string content = xElement.ToString();
+            string readAll;
             try
             {
-                // получу конкретный календарь personal
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://mx.sailau09.kz/SOGo/dav/test1@sailau09.kz/Calendar/created2%20calendar.ics");
-                //HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://mx.sailau09.kz/SOGo/dav/test1@sailau09.kz/Calendar/personal.ics");
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(new Uri("https://mx.sailau09.kz/SOGo/dav/test1@sailau09.kz/Calendar/"));
                 request.Credentials = new NetworkCredential("postmaster@sailau09.kz", "!QAZ3edc");
                 request.ContentType = "text/xml";
-                request.Headers.Add("If-None-Match", "*");
-                request.Method = "GET";
+                ((HttpWebRequest)request).UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.2 (KHTML, like Gecko) Chrome/15.0.874.121 Safari/535.2";
+                request.Headers.Add("Depth", "1");
+                request.Method = "PROPFIND";
                 request.ServerCertificateValidationCallback = delegate { return true; }; // при публикации на боевой сервер убрать
+
+                using (var stream = request.GetRequestStream())
+                {
+                    var strWrt = new StreamWriter(stream);
+                    strWrt.Write(content);
+                }
+
+
                 HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync();
                 using (Stream stream = response.GetResponseStream())
                 {
                     using (StreamReader reader = new StreamReader(stream))
                     {
                         readAll = reader.ReadToEnd();
-                        calendar = Calendar.Load(readAll);
+                        var xDocument = XDocument.Parse(readAll);
+                        var statusCode = response.StatusCode;
+                        var responses = xDocument.Descendants(xDav.GetName("response"));
+                       
+                        foreach (XElement res in responses)
+                        {
+                            if (res.Descendants(xCalDav.GetName("calendar")).Count() > 0)
+                            {
+                                string hrefRelative = res.Descendants(xDav.GetName("href")).First().Value;
+                                
+                                string href = "https://mx.sailau09.kz" + hrefRelative.TrimEnd('/') + ".ics";
+                                var calendar= GetCalendarAsync(href).GetAwaiter().GetResult();
+                                // var desc = res.Descendants(xCalDav.GetName("calendar-description")).FirstOrDefault();
+                                // var name = res.Descendants(xDav.GetName("displayname")).FirstOrDefault();
+                                calendars.Add(calendar);
+                            }
+                        }
                     }
                 }
                 response.Close();
+
+
             }
             catch (Exception ex)
             {
-                return BadRequest(new {message = ex.Message });
+                return BadRequest(new { message = ex.Message });
             }
+
             //получу список всех мероприятий из конкретного календаря
-            var events = calendar?.Events;
-            
-            foreach (var item in calendar.Properties)
+            // var events = calendar?.Events;
+
+            //foreach (var item in calendar.Properties)
+            //{
+            //    if (item.Name == "X-WR-CALNAME")
+            //    {
+            //        calendarName = item.Value?.ToString();
+            //    }
+
+            //}
+
+            foreach (var calendar in calendars)
             {
-                if(item.Name== "X-WR-CALNAME")
+                foreach (var item in calendar.Properties)
                 {
-                    calendarName = item.Value?.ToString();
+                    if (item.Name == "X-WR-CALNAME")
+                    {
+                        calendarName = item.Value?.ToString();
+                    }
                 }
                
+
             }
-            
-            return View(events.ToList());
+
+            return View(calendars);
+            //return View();
 
         }
 
@@ -233,12 +276,13 @@ namespace CalendarSogo.Controllers
                         var statusCode = response.StatusCode;
                         var responses = xDocument.Descendants(xDav.GetName("response"));
                         List<Calendar> calendars = new List<Calendar>();
-                        // var hrefs = xdoc.Descendants(CalDav.Common.xDav.GetName("href"));
                         foreach (XElement res in responses)
                         {
                             if (res.Descendants(xCalDav.GetName("calendar")).Count() > 0)
                             {
                                 string href = res.Descendants(xDav.GetName("href")).First().Value;
+                               // var desc = res.Descendants(xCalDav.GetName("calendar-description")).FirstOrDefault();
+                               // var name = res.Descendants(xDav.GetName("displayname")).FirstOrDefault();
                                 //calendars.Add(new Calendar(Common, new Uri(Url, href)) { Credentials = Credentials });
                             }
                         }
@@ -288,7 +332,39 @@ namespace CalendarSogo.Controllers
 
        
 
+        private async Task<Calendar> GetCalendarAsync(string href)
+        {
+            Calendar calendar = null;
+            string calendarName;
+            string readAll = "";
+            try
+            {
+                // получу конкретный календарь personal
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(href);
+                request.Credentials = new NetworkCredential("postmaster@sailau09.kz", "!QAZ3edc");
+                request.ContentType = "text/xml";
+                request.Headers.Add("Depth", "0");
+                request.Headers.Add("If-None-Match", "*");
+                request.Method = "GET";
+                request.ServerCertificateValidationCallback = delegate { return true; }; // при публикации на боевой сервер убрать
+                HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync();
+                using (Stream stream = response.GetResponseStream())
+                {
+                    using (StreamReader reader = new StreamReader(stream))
+                    {
+                        readAll = reader.ReadToEnd();
+                        calendar = Calendar.Load(readAll);
+                    }
+                }
+                response.Close();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
 
+            return calendar;
+        }
 
 
 
