@@ -1,3 +1,5 @@
+using Google.Apis.Auth.AspNetCore3;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -24,6 +26,31 @@ namespace CalendarSogo
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
+
+
+     //       services.AddAuthentication(o =>
+     //        {
+     //                   // This forces challenge results to be handled by Google OpenID Handler, so there's no
+     //                   // need to add an AccountController that emits challenges for Login.
+     //                   o.DefaultChallengeScheme = GoogleOpenIdConnectDefaults.AuthenticationScheme;
+     //                   // This forces forbid results to be handled by Google OpenID Handler, which checks if
+     //                   // extra scopes are required and does automatic incremental auth.
+     //                   o.DefaultForbidScheme = GoogleOpenIdConnectDefaults.AuthenticationScheme;
+     //                   // Default scheme that will handle everything else.
+     //                   // Once a user is authenticated, the OAuth2 token info is stored in cookies.
+     //                   o.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+     //        })
+     //.AddCookie()
+     //.AddGoogleOpenIdConnect(options =>
+     //{
+     //   // options.ClientId = "61764337624-7bo58cgif3b5rgo2195ehu8fsosl9pej.apps.googleusercontent.com";
+     //    options.ClientId = "61764337624-ogoglp722inrph2df3dj31hcllvv3gsa.apps.googleusercontent.com";
+     //   // options.ClientSecret = "kJMa-EswZtJUjH1rjDUfwv7d";
+     //    options.ClientSecret = "COrlExkZ1qMZpftg2_l8pZWF";
+     //    options.CallbackPath = "/Home/RedirectUri";
+     //});
+
+          
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -43,7 +70,7 @@ namespace CalendarSogo
             app.UseStaticFiles();
 
             app.UseRouting();
-
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

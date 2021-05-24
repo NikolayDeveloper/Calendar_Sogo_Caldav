@@ -1,8 +1,15 @@
 ﻿using CalendarSogo.Models;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Calendar.v3;
+using Google.Apis.Calendar.v3.Data;
+using Google.Apis.Services;
+using Google.Apis.Util.Store;
 using Ical.Net;
 using Ical.Net.CalendarComponents;
 using Ical.Net.DataTypes;
 using Ical.Net.Serialization;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -14,26 +21,29 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace CalendarSogo.Controllers
 {
+    //[Authorize]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
         public static readonly XNamespace xDav = XNamespace.Get("DAV:");
         public static readonly XNamespace xCalDav = XNamespace.Get("urn:ietf:params:xml:ns:caldav");
-
+        static string[] Scopes = { CalendarService.Scope.CalendarReadonly };
+        static string ApplicationName = "calendar4";
         public HomeController(ILogger<HomeController> logger)
         {
             _logger = logger;
         }
-
+        [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
             string calendarName;
-            List<Calendar> calendars = new List<Calendar>();
+            List<Ical.Net.Calendar> calendars = new List<Ical.Net.Calendar>();
             XDocument xProps = new XDocument(new XElement(xDav.GetName("propfind"), new XElement(xDav.GetName("allprop"))));
             XElement xElement = xProps.Root;
             string content = xElement.ToString();
@@ -178,8 +188,8 @@ namespace CalendarSogo.Controllers
                 request.Headers.Add("If-None-Match", "*");
                 request.Method = "PUT";
                 request.ServerCertificateValidationCallback = delegate { return true; };// при публикации на боевой сервер убрать
-           
-                Calendar calendar = new Calendar();
+
+                Ical.Net.Calendar calendar = new Ical.Net.Calendar();
                 calendar.Events.Add(e);
                 CalendarSerializer calendarSerializer = new CalendarSerializer();
                 // возьмем поток и запишем туда наше мероприятие
@@ -275,7 +285,7 @@ namespace CalendarSogo.Controllers
                         var xDocument = XDocument.Parse(readAll);
                         var statusCode = response.StatusCode;
                         var responses = xDocument.Descendants(xDav.GetName("response"));
-                        List<Calendar> calendars = new List<Calendar>();
+                        List<Ical.Net.Calendar> calendars = new List<Ical.Net.Calendar>();
                         foreach (XElement res in responses)
                         {
                             if (res.Descendants(xCalDav.GetName("calendar")).Count() > 0)
@@ -332,9 +342,9 @@ namespace CalendarSogo.Controllers
 
        
 
-        private async Task<Calendar> GetCalendarAsync(string href)
+        private async Task<Ical.Net.Calendar> GetCalendarAsync(string href)
         {
-            Calendar calendar = null;
+            Ical.Net.Calendar calendar = null;
             string calendarName;
             string readAll = "";
             try
@@ -353,7 +363,7 @@ namespace CalendarSogo.Controllers
                     using (StreamReader reader = new StreamReader(stream))
                     {
                         readAll = reader.ReadToEnd();
-                        calendar = Calendar.Load(readAll);
+                        calendar = Ical.Net.Calendar.Load(readAll);
                     }
                 }
                 response.Close();
@@ -376,15 +386,79 @@ namespace CalendarSogo.Controllers
 
 
 
-
-
-
-
         public IActionResult Privacy()
         {
+            //var idToken = HttpContext.GetTokenAsync("id_token").GetAwaiter().GetResult();
+            //var accessToken = HttpContext.GetTokenAsync("access_token").GetAwaiter().GetResult();
+
+            UserCredential credential;
+
+            using (var stream =
+                new FileStream("credentials.json", FileMode.Open, FileAccess.Read))
+            {
+                // The file token.json stores the user's access and refresh tokens, and is created
+                // automatically when the authorization flow completes for the first time.
+                string credPath = "token.json";
+                credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
+                    GoogleClientSecrets.Load(stream).Secrets,
+                    Scopes,
+                    "user",
+                    CancellationToken.None,
+                    new FileDataStore(credPath, true)).Result;
+                Console.WriteLine("Credential file saved to: " + credPath);
+            }
+
+            // Create Google Calendar API service.
+            var service = new CalendarService(new BaseClientService.Initializer()
+            {
+                HttpClientInitializer = credential,
+                // ApiKey= "AIzaSyDdr1slmbKcsnR3_Ju6rGP6yQkHSqOPjBQ",
+                ApplicationName = ApplicationName,
+            });
+
+            var gs = service.CalendarList.List();
+            var fgs = gs.Execute();
+
+            // Define parameters of request.
+            EventsResource.ListRequest request = service.Events.List("primary");
+            request.TimeMin = DateTime.Now;
+            request.ShowDeleted = false;
+            request.SingleEvents = true;
+            request.MaxResults = 10;
+            request.OrderBy = EventsResource.ListRequest.OrderByEnum.StartTime;
+
+            // List events.
+            Events events = request.Execute();
+            Console.WriteLine("Upcoming events:");
+            if (events.Items != null && events.Items.Count > 0)
+            {
+                foreach (var eventItem in events.Items)
+                {
+                    string when = eventItem.Start.DateTime.ToString();
+                    if (String.IsNullOrEmpty(when))
+                    {
+                        when = eventItem.Start.Date;
+                    }
+                    Console.WriteLine("{0} ({1})", eventItem.Summary, when);
+                }
+            }
+            else
+            {
+                Console.WriteLine("No upcoming events found.");
+            }
+            Console.Read();
+
+
             return View();
         }
 
+
+
+        public IActionResult RedirectUri()
+        {
+            return View();
+        }
+        
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
